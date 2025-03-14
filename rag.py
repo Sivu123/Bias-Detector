@@ -1,4 +1,4 @@
-afrom langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from langgraph.graph import MessagesState
@@ -45,3 +45,7 @@ def search_web(state:BotState):
         ]
     )
   return {"context": [formatted_search_docs]}  
+
+def bias_indentifier(state:BotState,config:RunnableConfig):
+    topic_docs = state["context"]
+    system_message = [SystemMessage(pt.BIAS_QUERY.format(documents = topic_docs))]
