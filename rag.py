@@ -49,3 +49,10 @@ def search_web(state:BotState):
 def bias_indentifier(state:BotState,config:RunnableConfig):
     topic_docs = state["context"]
     system_message = [SystemMessage(pt.BIAS_QUERY.format(documents = topic_docs))]
+    print(system_message)
+    invoke_llm = llm.invoke(system_message,config)
+    return {"answers": invoke_llm.content}
+
+helper_builder = StateGraph(BotState)
+helper_builder.add_node("websearch",search_web)
+helper_builder.add_node("biasanalyzer",bias_identifier)
