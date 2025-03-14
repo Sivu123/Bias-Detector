@@ -1,4 +1,4 @@
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+afrom langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from langgraph.graph import MessagesState
@@ -37,4 +37,11 @@ class BotState(MessagesState):
 
 def search_web(state:BotState):
   hot_topic = state["messages"]
-  search_docs = tavily_search.invoke(pt.
+  search_docs = tavily_search.invoke(pt.SEARCH_QUERY.format(topic = hot_topic))
+  formatted_search_docs = "\n\n---\n\n".join(
+        [
+            f'<Document href="{doc["url"]}"/>\n{doc["content"]}\n</Document>'
+            for doc in search_docs
+        ]
+    )
+  return {"context": [formatted_search_docs]}  
