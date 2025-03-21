@@ -46,7 +46,7 @@ def search_web(state:BotState):
     )
   return {"context": [formatted_search_docs]}  
 
-def bias_indentifier(state:BotState,config:RunnableConfig):
+def bias_identifier(state:BotState,config:RunnableConfig):
     topic_docs = state["context"]
     system_message = [SystemMessage(pt.BIAS_QUERY.format(documents = topic_docs))]
     print(system_message)
@@ -56,3 +56,17 @@ def bias_indentifier(state:BotState,config:RunnableConfig):
 helper_builder = StateGraph(BotState)
 helper_builder.add_node("websearch",search_web)
 helper_builder.add_node("biasanalyzer",bias_identifier)
+helper_builder.add_edge(START,"websearch")
+helper_builder.add_edge("websearch","biasanalyzer")
+helper_builder.add_edge("biasanalyzer",END)
+helper_graph = helper_builder.compile()
+async def graph_streamer(user_query:str):
+    node_to_stream = 'biasanalyzer'
+    model_config = {"configurable": {"thread_id": "1"}}
+    input_message = HumanMessage(content = user_query)
+    async for event in helper_graph.astream_events({"messages": [input_message]}, model_config, version="v2"):
+        if event["event"] == "on_chat_model_stream":
+            if event['metadata'].get('langgraph_node','') == node_to_stream:
+                data = event["data"]
+                yield data["chunk"].content
+    
