@@ -4,3 +4,6 @@ image_address = "https://bs-uploads.toptal.io/blackfish-uploads/components/open_
 st.title("Bias Reader")
 st.image(image_address)
 user_text = st.text_input("Please add your topic")
+if user_text:
+  st.subheader("bias analysis")
+  st.write_stream(graph_streamer(user_text))
