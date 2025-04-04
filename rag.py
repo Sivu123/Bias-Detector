@@ -12,7 +12,7 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 import base64
 import streamlit as st
 import os
-
+from tavily import TavilyClient
 import prompts as pt
 
 os.environ["LANGCHAIN_TRACING_V2"] = st.secrets["LANGCHAIN_TRACING_V2"]
@@ -28,6 +28,7 @@ MAX_RESULTS = 5
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 # create client
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+tavily_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 # tavily search
 tavily_search = TavilySearchResults(max_results = MAX_RESULTS)
 class BotState(MessagesState):
@@ -36,12 +37,12 @@ class BotState(MessagesState):
 
 
 def search_web(state:BotState):
-  hot_topic = state["messages"]
+  hot_topic = state["messages"][-1].content
   search_docs = tavily_search.invoke(pt.SEARCH_QUERY.format(topic = hot_topic))
   formatted_search_docs = "\n\n---\n\n".join(
         [
             f'<Document href="{doc["url"]}"/>\n{doc["content"]}\n</Document>'
-            for doc in search_docs
+            for doc in search_docs["results"]
         ]
     )
   return {"context": [formatted_search_docs]}  
